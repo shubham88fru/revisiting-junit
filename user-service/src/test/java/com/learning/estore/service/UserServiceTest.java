@@ -1,23 +1,34 @@
 package com.learning.estore.service;
 
+import com.learning.estore.data.UsersRepository;
 import com.learning.estore.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
-    UserService userService;
+    @InjectMocks
+    UserServiceImpl userService;
+
     String firstName;
     String lastName;
     String email;
     String password;
     String repeatPassword;
 
+    @Mock
+    UsersRepository usersRepository;
+
     @BeforeEach
     void init() {
-        userService = new UserServiceImpl();
         firstName = "shubham";
         lastName = "singh";
         email = "test@test.com";
@@ -28,6 +39,8 @@ public class UserServiceTest {
     @DisplayName("User object created")
     @Test
     public void testCreateUser_whenUserDetailsProvided_returnsUserObject() {
+
+        Mockito.when(usersRepository.save(Mockito.any(User.class))).thenReturn(Boolean.TRUE);
 
         //act
         User user = userService.createUser(firstName, lastName,
@@ -49,6 +62,9 @@ public class UserServiceTest {
                 user.getEmail(), "User's email should match.");
 
         Assertions.assertNotNull(user.getId(), "User id is missing");
+
+        Mockito.verify(usersRepository, Mockito.times(1))
+                .save(Mockito.any(User.class));
 
     }
 
