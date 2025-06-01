@@ -33,9 +33,15 @@ public class UserServiceImpl implements UserService {
                 UUID.randomUUID().toString()
         );
 
-        if (!usersRepository.save(user)) {
-            throw new UserServiceException("Couldn't create user");
+        try {
+            if (!usersRepository.save(user)) {
+                throw new UserServiceException("Couldn't create user");
+            }
+        } catch (Exception e) {
+            throw new UserServiceException(e.getMessage());
         }
+
+
 
         return user;
     }

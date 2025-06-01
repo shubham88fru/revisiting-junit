@@ -12,6 +12,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
@@ -40,7 +44,7 @@ public class UserServiceTest {
     @Test
     public void testCreateUser_whenUserDetailsProvided_returnsUserObject() {
 
-        Mockito.when(usersRepository.save(Mockito.any(User.class))).thenReturn(Boolean.TRUE);
+        when(usersRepository.save(any(User.class))).thenReturn(Boolean.TRUE);
 
         //act
         User user = userService.createUser(firstName, lastName,
@@ -64,7 +68,7 @@ public class UserServiceTest {
         Assertions.assertNotNull(user.getId(), "User id is missing");
 
         Mockito.verify(usersRepository, Mockito.times(1))
-                .save(Mockito.any(User.class));
+                .save(any(User.class));
 
     }
 
@@ -75,10 +79,24 @@ public class UserServiceTest {
         firstName = "";
 
         // Act and assert
-        Assertions.assertThrows(IllegalArgumentException.class, () -> userService.createUser(
+        assertThrows(IllegalArgumentException.class, () -> userService.createUser(
                 firstName, lastName, email, password, repeatPassword
         ), "Empty first name should have caused an Illegal argument exception.");
 
         // Assertions
+    }
+
+    @DisplayName("If save() method causes RuntimeException, a UserServiceException is thrown.")
+    @Test
+    public void testCreateUser_whenSaveMethodThrowsException_thenThrowsUserServiceException() {
+        // Arrange
+        when(usersRepository.save(any(User.class))).thenThrow(RuntimeException.class);
+
+        // Act
+        assertThrows(UserServiceException.class, () -> {
+            userService.createUser(firstName, lastName, email, password, repeatPassword);
+        }, "Should have thrown UserServiceException instead");
+
+        //Assert
     }
 }
