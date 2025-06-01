@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
@@ -30,6 +30,9 @@ public class UserServiceTest {
 
     @Mock
     UsersRepository usersRepository;
+
+    @Mock
+    EmailVerificationService emailVerificationService;
 
     @BeforeEach
     void init() {
@@ -98,5 +101,24 @@ public class UserServiceTest {
         }, "Should have thrown UserServiceException instead");
 
         //Assert
+    }
+
+    @DisplayName("EmailNotificationException is handled")
+    @Test
+    public void testCreateUser_whenEmailNotificationExceptionThrown_throwsUserServiceException() {
+        // Arrange
+        when(usersRepository.save(any(User.class))).thenReturn(Boolean.TRUE);
+
+        //special case to throw exception from void methods.
+        doThrow(EmailNotificationServiceException.class)
+                .when(emailVerificationService)
+                .scheduleEmailConfirmation(any(User.class));
+
+        assertThrows(UserServiceException.class, () -> {
+            userService.createUser(firstName, lastName, email, password, repeatPassword);
+        }, "Should have thrown UserServiceException instead");
+
+        verify(emailVerificationService, Mockito.times(1))
+                .scheduleEmailConfirmation(any(User.class));
     }
 }
